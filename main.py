@@ -63,7 +63,7 @@ async def get_calories(food: str = Query(..., description="The name of the food"
         return {
             "food": food_data["Food"],
             "input_weight": weight,
-            "calculated_calories": round(calculated_calories, 2)
+            "calculated_calories": int(calculated_calories)
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
