@@ -1,7 +1,7 @@
 import requests
 
 # Define the API endpoint URL
-API_URL = "http://127.0.0.1:8000/calories"
+API_URL = "http://127.0.0.1:8000/nutrient"
 
 while True:
     try:
