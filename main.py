@@ -23,102 +23,56 @@ async def get_data():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading Excel file: {str(e)}")
 
-# @app.get("/calories")
-# async def get_calories(food: str = Query(..., description="The name of the food"), 
-#                        weight: float = Query(..., description="Weight of the food in grams")):
-#     """
-#     Endpoint to calculate calories based on food name and weight.
-    
-#     Parameters:
-#     - food: Name of the food (string).
-#     - weight: Weight of the food in grams (float).
-
-#     Returns:
-#     - JSON response with the calculated calories.
-#     """
-#     try:
-#         # Load the data from the Excel file
-#         df = pd.read_excel(EXCEL_FILE_PATH)
-#         df = df.fillna(0)
-
-#         # Normalize food names in the DataFrame and input for case-insensitivity
-#         df["Food"] = df["Food"].str.strip().str.lower()
-#         food = food.strip().lower()
-
-#         # Check if the food exists in the dataset
-#         if food not in df["Food"].values:
-#             raise HTTPException(status_code=404, detail=f"Food '{food}' not found in the database.")
-
-#         # Get the row corresponding to the food
-#         food_data = df[df["Food"] == food].iloc[0]
-
-#         # Extract weight and calories from the dataset
-#         dataset_weight = food_data["Weight"]
-#         dataset_calories = food_data["Calories"]
-
-#         # Calculate the calories based on the input weight
-#         calculated_calories = (weight / dataset_weight) * dataset_calories
-
-#         # Return the calculated calories
-#         return {
-#             "food": food_data["Food"],
-#             "input_weight": weight,
-#             "calculated_calories": int(calculated_calories)
-#         }
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
-
 @app.get("/nutrient")
 async def get_nutrient(
     food: str = Query(..., description="The name of the food"),
-    weight: float = Query(..., description="Weight of the food in grams"),
-    nutrient: str = Query(..., description="Nutrient to retrieve (Calories, Carbohydrate, Protein, Fat)")
+    weight: float = Query(..., description="Weight of the food in grams")
 ):
     """
-    Endpoint to calculate the requested nutrient (Calories, Carbohydrate, Protein, or Fat)
+    Endpoint to calculate all nutrients (Calories, Carbohydrate, Protein, and Fat)
     based on food name and weight.
     
     Parameters:
     - food: Name of the food (string).
     - weight: Weight of the food in grams (float).
-    - nutrient: The specific nutrient to calculate (Calories, Carbohydrate, Protein, or Fat).
 
     Returns:
-    - JSON response with the calculated nutrient value.
+    - JSON response with all calculated nutrient values.
     """
     try:
         # Load data
         df = pd.read_excel(EXCEL_FILE_PATH)
         df = df.fillna(0)
 
-        # Normalize food names
-        df["Food"] = df["Food"].str.strip().str.lower()
+        # Normalize and split food names into Malay and English
+        df["Malay_Name"] = df["Food"].str.extract(r"^([^(]+)").iloc[:, 0].str.strip().str.lower()
+        df["English_Name"] = df["Food"].str.extract(r"\(([^)]+)\)").iloc[:, 0].str.strip().str.lower()
+
+        # Normalize input
         food = food.strip().lower()
 
-        # Validate food name
-        if food not in df["Food"].values:
+        # Try to match either Malay or English name
+        matched_row = df[(df["Malay_Name"] == food) | (df["English_Name"] == food)]
+
+        if matched_row.empty:
             raise HTTPException(status_code=404, detail=f"Food '{food}' not found in the database.")
 
-        # Validate nutrient
-        valid_nutrients = ["Calories", "Carbohydrate", "Protein", "Fat"]
-        if nutrient not in valid_nutrients:
-            raise HTTPException(status_code=400, detail=f"Invalid nutrient. Choose from: {', '.join(valid_nutrients)}")
+        food_data = matched_row.iloc[0]
 
-        # Get the food data
-        food_data = df[df["Food"] == food].iloc[0]
-
-        # Extract weight and requested nutrient value
+        # Extract weight and nutrient values
         dataset_weight = food_data["Weight"]
-        dataset_nutrient_value = food_data[nutrient]
+        nutrients = ["Calories", "Carbohydrate", "Protein", "Fat","Calcium","Iron","Sodium","Potassium","Vitamin C","Cholesterol"]
 
-        # Calculate the proportional nutrient value
-        calculated_value = (weight / dataset_weight) * dataset_nutrient_value
+        calculated_nutrients = {}
+        for nutrient in nutrients:
+            value = round((weight / dataset_weight) * food_data[nutrient], 2)
+            unit = "mg" if nutrient in ["Vitamin C", "Cholesterol"] else "g"
+            calculated_nutrients[nutrient] = f"{value} {unit}"
 
         return {
             "food": food_data["Food"],
             "input_weight": weight,
-            "requested_nutrient": nutrient,
-            "calculated_value": round(calculated_value, 2)
+            "calculated_nutrients": calculated_nutrients
         }
 
     except Exception as e:

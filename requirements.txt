@@ -3,3 +3,9 @@ uvicorn
 pandas
 openpyxl
 requests
+opencv-python
+streamlit
+pillow
+xgboost
+ultralytics<=8.3.40
+scikit-learn
