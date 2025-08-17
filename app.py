@@ -14,7 +14,10 @@ xgb_model.load_model("./xgboost/xgboost_model.json")  # Update path accordingly
 
 # Streamlit app
 st.set_page_config(page_title="Food Nutrition Retrieval Application", layout="wide")
-st.title("🍱 Food Nutrition Retrieval Application")
+st.title("NutriVision")
+# st.title("🍱 Automated Calories Prediction Application")
+# st.title("🍱 Food Nutrition Retrieval Application")
+
 
 # Upload image
 uploaded_file = st.file_uploader("Upload a food image with ArUco marker", type=["jpg", "jpeg", "png"])
