@@ -1,3 +1,5 @@
+# Left = food name detected by YOLO
+# right = food name in API
 FOOD_NAME_MAPPING = {
     "apple": "gala apple",
     "banana": "banana",
@@ -6,7 +8,9 @@ FOOD_NAME_MAPPING = {
     "fried rice": "rice, fried",
     "rojak": "rojak",
     "cooked rice": "rice, cooked",
-    "oat": "oats, rolled"
+    "oat": "oats, rolled",
+    "mashed potato": "potato, mashed",
+    "coleslaw": "coleslaw"
 }
 
 def map_to_api_name(local_food_name: str) -> str:

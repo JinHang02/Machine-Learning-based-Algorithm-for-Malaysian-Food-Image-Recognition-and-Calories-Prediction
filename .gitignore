@@ -1,3 +1,5 @@
 .conda
 __pycache__/
 best.pt
+*.json
+food-dataset.xlsx
